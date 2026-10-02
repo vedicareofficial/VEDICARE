@@ -599,6 +599,8 @@
 
         const auth =
             firebase.auth();
+            const BACKEND_URL =
+    "https://vedicare-backend.onrender.com";
 
 
         // ==========================================
@@ -1676,11 +1678,11 @@
 
 
                     <button
-                        class="success-btn"
-                        onclick="updateOrderStatus('${orderId}', 'Accepted')"
-                    >
-                        ACCEPTED
-                    </button>
+    class="success-btn"
+    onclick="createShiprocketOrder('${orderId}')"
+>
+    ACCEPTED
+</button>
 
 
                     <button
@@ -1780,6 +1782,236 @@
             }
 
         }
+        async function createShiprocketOrder(orderId) {
+
+    try {
+
+        const orderDoc = await db
+            .collection("orders")
+            .doc(orderId)
+            .get();
+
+        if (!orderDoc.exists) {
+            throw new Error("Order nahi mila.");
+        }
+
+        const order = orderDoc.data();
+        const customer = order.customer || {};
+        const items = Array.isArray(order.items)
+            ? order.items
+            : [];
+
+        if (items.length === 0) {
+            throw new Error("Order me products nahi hain.");
+        }
+
+        const order_items = items.map(item => ({
+            name: item.name || "Product",
+            sku: item.productId || item.id || "PRODUCT",
+            units: Number(item.quantity) || 1,
+            selling_price: Number(item.price) || 0,
+            discount: 0,
+            tax: 0,
+            hsn: ""
+        }));
+
+        let totalWeight = 0;
+
+        items.forEach(item => {
+            totalWeight +=
+                (Number(item.weight) || 0) *
+                (Number(item.quantity) || 1);
+        });
+
+        totalWeight = totalWeight / 1000;
+
+        if (totalWeight <= 0) {
+            throw new Error(
+                "Product weight available nahi hai."
+            );
+        }
+
+        const payload = {
+
+            order_id:
+                order.orderNumber || orderId,
+
+            order_date:
+                new Date().toISOString(),
+
+            pickup_location:
+                "Home PRIMARY",
+
+            channel_id:
+                "",
+
+            comment:
+                "VEDICARE Website Order",
+
+            billing_customer_name:
+                customer.name || "",
+
+            billing_last_name:
+                "",
+
+            billing_address:
+                customer.address || "",
+
+            billing_address_2:
+                "",
+
+            billing_city:
+                "",
+
+            billing_pincode:
+                customer.pincode || "",
+
+            billing_state:
+                customer.state || "",
+
+            billing_country:
+                "India",
+
+            billing_email:
+                "",
+
+            billing_phone:
+                customer.phone || "",
+
+            shipping_is_billing:
+                true,
+
+            shipping_customer_name:
+                customer.name || "",
+
+            shipping_last_name:
+                "",
+
+            shipping_address:
+                customer.address || "",
+
+            shipping_address_2:
+                "",
+
+            shipping_city:
+                "",
+
+            shipping_pincode:
+                customer.pincode || "",
+
+            shipping_state:
+                customer.state || "",
+
+            shipping_country:
+                "India",
+
+            shipping_email:
+                "",
+
+            shipping_phone:
+                customer.phone || "",
+
+            order_items:
+                order_items,
+
+            payment_method:
+                "COD",
+
+            shipping_charges:
+                Number(order.shipping) || 0,
+
+            giftwrap_charges:
+                0,
+
+            transaction_charges:
+                0,
+
+            total_discount:
+                0,
+
+            sub_total:
+                Number(order.subtotal) || 0,
+
+            length:
+                20,
+
+            breadth:
+                15,
+
+            height:
+                10,
+
+            weight:
+                totalWeight
+        };
+
+        const response = await fetch(
+            `${BACKEND_URL}/api/shiprocket/orders/create`,
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body:
+                    JSON.stringify(payload)
+            }
+        );
+
+        const result =
+            await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                result.message ||
+                "Shiprocket order create failed."
+            );
+        }
+
+        await db
+            .collection("orders")
+            .doc(orderId)
+            .update({
+
+                shiprocketOrderId:
+                    String(
+                        result.order_id || ""
+                    ),
+
+                shipmentId:
+                    String(
+                        result.shipment_id || ""
+                    ),
+
+                status:
+                    "Accepted",
+
+                updatedAt:
+                    firebase.firestore.FieldValue
+                        .serverTimestamp()
+            });
+
+        alert(
+            "Order accepted aur Shiprocket me create ho gaya."
+        );
+
+        loadOrders();
+
+    } catch (error) {
+
+        console.error(
+            "Shiprocket order error:",
+            error
+        );
+
+        alert(
+            "Shiprocket order create nahi hua.\n\n" +
+            error.message
+        );
+    }
+}
 
 
         // ==========================================
