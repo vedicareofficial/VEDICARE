@@ -1,0 +1,1927 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>VEDICARE - Admin Panel</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f5f6f8;
+            color: #222;
+        }
+
+        header {
+            background: #111827;
+            color: white;
+            padding: 18px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 22px;
+        }
+
+        button {
+            border: none;
+            border-radius: 7px;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .logout-btn {
+            background: #ef4444;
+            color: white;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 25px 15px;
+        }
+
+        .login-box {
+            max-width: 400px;
+            margin: 80px auto;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .login-box h2 {
+            margin-top: 0;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            padding: 11px;
+            margin-top: 6px;
+            margin-bottom: 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 7px;
+            font-size: 14px;
+        }
+
+        textarea {
+            min-height: 90px;
+            resize: vertical;
+        }
+
+        label {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .primary-btn {
+            background: #2563eb;
+            color: white;
+        }
+
+        .success-btn {
+            background: #16a34a;
+            color: white;
+        }
+
+        .warning-btn {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .danger-btn {
+            background: #dc2626;
+            color: white;
+        }
+
+        .secondary-btn {
+            background: #6b7280;
+            color: white;
+        }
+
+        .section {
+            background: white;
+            padding: 22px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+        }
+
+        .section h2 {
+            margin-top: 0;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .product-list,
+        .orders-list {
+            display: grid;
+            gap: 18px;
+        }
+
+        .product-card,
+        .order-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 18px;
+            background: #fff;
+        }
+
+        .product-card {
+            display: flex;
+            gap: 18px;
+            align-items: center;
+        }
+
+        .product-card img {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            background: #f3f4f6;
+            border-radius: 8px;
+        }
+
+        .product-info {
+            flex: 1;
+        }
+
+        .product-info h3 {
+            margin: 0 0 7px;
+        }
+
+        .product-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 12px;
+            margin-bottom: 15px;
+        }
+
+        .order-number {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .status {
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            background: #e5e7eb;
+        }
+
+        .order-items {
+            background: #f9fafb;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 7px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .order-item:last-child {
+            border-bottom: none;
+        }
+
+        .customer-box,
+        .shipment-box {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 9px;
+            margin-top: 15px;
+        }
+
+        .customer-box h3,
+        .shipment-box h3 {
+            margin-top: 0;
+        }
+
+        .status-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .status-buttons button {
+            font-size: 12px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .message {
+            padding: 12px;
+            border-radius: 7px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .message.error {
+            display: block;
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .message.success {
+            display: block;
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .admin-note {
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+            color: #9a3412;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .total-box {
+            background: #eef2ff;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 12px;
+        }
+
+        @media (max-width: 700px) {
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .product-card {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .product-card img {
+                width: 130px;
+                height: 130px;
+            }
+
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- =========================
+         LOGIN
+    ========================== -->
+
+    <div id="login-screen">
+
+        <div class="login-box">
+
+            <h2>VEDICARE Admin</h2>
+
+            <p>Admin login required.</p>
+
+            <div id="login-message" class="message"></div>
+
+            <label>Email</label>
+            <input
+                type="email"
+                id="login-email"
+                placeholder="Admin email"
+            >
+
+            <label>Password</label>
+            <input
+                type="password"
+                id="login-password"
+                placeholder="Password"
+            >
+
+            <button
+                class="primary-btn"
+                style="width:100%;"
+                onclick="adminLogin()"
+            >
+                LOGIN
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         ADMIN PANEL
+    ========================== -->
+
+    <div id="admin-panel" class="hidden">
+
+        <header>
+
+            <h1>VEDICARE Admin Panel</h1>
+
+            <button
+                class="logout-btn"
+                onclick="adminLogout()"
+            >
+                Logout
+            </button>
+
+        </header>
+
+
+        <div class="container">
+
+            <div class="admin-note">
+                Shiprocket integration abhi secure backend ke through add ki jayegi.
+                <b>Shiprocket API password/secret is page par mat daalna.</b>
+            </div>
+
+
+            <!-- =========================
+                 PRODUCTS
+            ========================== -->
+
+            <div class="section">
+
+                <h2>Product Management</h2>
+
+                <div id="product-message" class="message"></div>
+
+                <input
+                    type="hidden"
+                    id="product-id"
+                >
+
+                <div class="grid">
+
+                    <div>
+                        <label>Product Name</label>
+
+                        <input
+                            type="text"
+                            id="product-name"
+                            placeholder="Product name"
+                        >
+                    </div>
+
+
+                    <div>
+                        <label>Price (₹)</label>
+
+                        <input
+                            type="number"
+                            id="product-price"
+                            placeholder="Product price"
+                            min="0"
+                        >
+                    </div>
+
+
+                    <div>
+                        <label>Stock</label>
+
+                        <input
+                            type="number"
+                            id="product-stock"
+                            placeholder="Available stock"
+                            min="0"
+                        >
+                    </div>
+
+
+                    <div>
+                        <label>Image URL</label>
+
+                        <input
+                            type="url"
+                            id="product-image"
+                            placeholder="https://..."
+                        >
+                    </div>
+
+
+                    <div>
+                        <label>Weight (grams)</label>
+
+                        <input
+                            type="number"
+                            id="product-weight"
+                            placeholder="Example: 500"
+                            min="0"
+                        >
+                    </div>
+
+
+                    <div>
+                        <label>Length (cm)</label>
+
+                        <input
+                            type="number"
+                            id="product-length"
+                            placeholder="Example: 20"
+                            min="0"
+                        >
+                    </div>
+
+
+                    <div>
+                        <label>Width (cm)</label>
+
+                        <input
+                            type="number"
+                            id="product-width"
+                            placeholder="Example: 10"
+                            min="0"
+                        >
+                    </div>
+
+
+                    <div>
+                        <label>Height (cm)</label>
+
+                        <input
+                            type="number"
+                            id="product-height"
+                            placeholder="Example: 5"
+                            min="0"
+                        >
+                    </div>
+
+                </div>
+
+
+                <label>Description</label>
+
+                <textarea
+                    id="product-description"
+                    placeholder="Product description"
+                ></textarea>
+
+
+                <div class="product-actions">
+
+                    <button
+                        class="primary-btn"
+                        onclick="saveProduct()"
+                    >
+                        SAVE PRODUCT
+                    </button>
+
+                    <button
+                        class="secondary-btn"
+                        onclick="clearProductForm()"
+                    >
+                        CLEAR
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- PRODUCT LIST -->
+
+            <div class="section">
+
+                <h2>Products</h2>
+
+                <div
+                    id="products-list"
+                    class="product-list"
+                >
+                    Loading products...
+                </div>
+
+            </div>
+
+
+            <!-- =========================
+                 ORDERS
+            ========================== -->
+
+            <div class="section">
+
+                <h2>Orders</h2>
+
+                <div
+                    id="orders-list"
+                    class="orders-list"
+                >
+                    Loading orders...
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         FIREBASE
+    ========================== -->
+
+    <script src="https://www.gstatic.com/firebasejs/12.19.0/firebase-app-compat.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore-compat.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/12.19.0/firebase-auth-compat.js"></script>
+
+
+    <script>
+
+        // ==========================================
+        // FIREBASE CONFIG
+        // ==========================================
+
+        const firebaseConfig = {
+
+            apiKey: "AIzaSyBiBdmJqF5sIFzylG6Fq89epJ2DaaA3qwU",
+
+            authDomain: "vedicare-3d079.firebaseapp.com",
+
+            projectId: "vedicare-3d079",
+
+            storageBucket: "vedicare-3d079.firebasestorage.app",
+
+            messagingSenderId: "415571474130",
+
+            appId: "1:415571474130:web:ed8db68575238c31d9df0b",
+
+            measurementId: "G-42DL6T7HLD"
+
+        };
+
+
+        firebase.initializeApp(firebaseConfig);
+
+
+        const db =
+            firebase.firestore();
+
+
+        const auth =
+            firebase.auth();
+
+
+        // ==========================================
+        // ADMIN UID
+        // ==========================================
+
+        const ADMIN_UID =
+            "G9UtDi2O8ObKiWZJdgYl8rYPE4K3";
+
+
+        // ==========================================
+        // ESCAPE HTML
+        // ==========================================
+
+        function escapeHTML(value) {
+
+            if (value === null || value === undefined) {
+                return "";
+            }
+
+            return String(value)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+
+        }
+
+
+        // ==========================================
+        // DATE FORMAT
+        // ==========================================
+
+        function formatDate(timestamp) {
+
+            if (!timestamp) {
+                return "Date not available";
+            }
+
+            try {
+
+                const date =
+                    timestamp.toDate
+                        ? timestamp.toDate()
+                        : new Date(timestamp);
+
+                return date.toLocaleString("en-IN");
+
+            } catch (error) {
+
+                return "Date not available";
+
+            }
+
+        }
+
+
+        // ==========================================
+        // LOGIN STATE
+        // ==========================================
+
+        auth.onAuthStateChanged(function(user) {
+
+            if (!user) {
+
+                showLogin();
+
+                return;
+
+            }
+
+
+            if (user.uid !== ADMIN_UID) {
+
+                alert(
+                    "This account is not authorized as admin."
+                );
+
+                auth.signOut();
+
+                return;
+
+            }
+
+
+            showAdminPanel();
+
+            loadProducts();
+
+            loadOrders();
+
+        });
+
+
+        // ==========================================
+        // SHOW LOGIN
+        // ==========================================
+
+        function showLogin() {
+
+            document
+                .getElementById("login-screen")
+                .classList.remove("hidden");
+
+
+            document
+                .getElementById("admin-panel")
+                .classList.add("hidden");
+
+        }
+
+
+        // ==========================================
+        // SHOW ADMIN
+        // ==========================================
+
+        function showAdminPanel() {
+
+            document
+                .getElementById("login-screen")
+                .classList.add("hidden");
+
+
+            document
+                .getElementById("admin-panel")
+                .classList.remove("hidden");
+
+        }
+
+
+        // ==========================================
+        // LOGIN
+        // ==========================================
+
+        async function adminLogin() {
+
+            const email =
+                document
+                    .getElementById("login-email")
+                    .value
+                    .trim();
+
+
+            const password =
+                document
+                    .getElementById("login-password")
+                    .value;
+
+
+            const message =
+                document
+                    .getElementById("login-message");
+
+
+            message.className = "message";
+
+
+            if (!email || !password) {
+
+                message.textContent =
+                    "Email aur password enter karo.";
+
+                message.classList.add("error");
+
+                return;
+
+            }
+
+
+            try {
+
+                await auth.signInWithEmailAndPassword(
+                    email,
+                    password
+                );
+
+            } catch (error) {
+
+                console.error(error);
+
+                message.textContent =
+                    "Login failed. Email/password check karo.";
+
+                message.classList.add("error");
+
+            }
+
+        }
+
+
+        // ==========================================
+        // LOGOUT
+        // ==========================================
+
+        async function adminLogout() {
+
+            await auth.signOut();
+
+        }
+
+
+        // ==========================================
+        // PRODUCT FORM
+        // ==========================================
+
+        function clearProductForm() {
+
+            document.getElementById("product-id").value = "";
+
+            document.getElementById("product-name").value = "";
+
+            document.getElementById("product-price").value = "";
+
+            document.getElementById("product-stock").value = "";
+
+            document.getElementById("product-image").value = "";
+
+            document.getElementById("product-description").value = "";
+
+            document.getElementById("product-weight").value = "";
+
+            document.getElementById("product-length").value = "";
+
+            document.getElementById("product-width").value = "";
+
+            document.getElementById("product-height").value = "";
+
+        }
+
+
+        // ==========================================
+        // SAVE PRODUCT
+        // ==========================================
+
+        async function saveProduct() {
+
+            const productId =
+                document
+                    .getElementById("product-id")
+                    .value;
+
+
+            const name =
+                document
+                    .getElementById("product-name")
+                    .value
+                    .trim();
+
+
+            const price =
+                Number(
+                    document
+                        .getElementById("product-price")
+                        .value
+                );
+
+
+            const stock =
+                Number(
+                    document
+                        .getElementById("product-stock")
+                        .value
+                );
+
+
+            const image =
+                document
+                    .getElementById("product-image")
+                    .value
+                    .trim();
+
+
+            const description =
+                document
+                    .getElementById("product-description")
+                    .value
+                    .trim();
+
+
+            const weight =
+                Number(
+                    document
+                        .getElementById("product-weight")
+                        .value
+                ) || 0;
+
+
+            const length =
+                Number(
+                    document
+                        .getElementById("product-length")
+                        .value
+                ) || 0;
+
+
+            const width =
+                Number(
+                    document
+                        .getElementById("product-width")
+                        .value
+                ) || 0;
+
+
+            const height =
+                Number(
+                    document
+                        .getElementById("product-height")
+                        .value
+                ) || 0;
+
+
+            const message =
+                document
+                    .getElementById("product-message");
+
+
+            message.className = "message";
+
+
+            if (!name) {
+
+                message.textContent =
+                    "Product name required.";
+
+                message.classList.add("error");
+
+                return;
+
+            }
+
+
+            if (price < 0 || stock < 0) {
+
+                message.textContent =
+                    "Price aur stock valid rakho.";
+
+                message.classList.add("error");
+
+                return;
+
+            }
+
+
+            const productData = {
+
+                name: name,
+
+                price: price,
+
+                stock: stock,
+
+                image: image,
+
+                description: description,
+
+                weight: weight,
+
+                length: length,
+
+                width: width,
+
+                height: height,
+
+                updatedAt:
+                    firebase.firestore.FieldValue.serverTimestamp()
+
+            };
+
+
+            try {
+
+                if (productId) {
+
+                    await db
+                        .collection("products")
+                        .doc(productId)
+                        .update(productData);
+
+                    message.textContent =
+                        "Product updated successfully.";
+
+                } else {
+
+                    productData.createdAt =
+                        firebase.firestore.FieldValue.serverTimestamp();
+
+
+                    await db
+                        .collection("products")
+                        .add(productData);
+
+                    message.textContent =
+                        "Product added successfully.";
+
+                }
+
+
+                message.classList.add("success");
+
+                clearProductForm();
+
+            } catch (error) {
+
+                console.error(
+                    "Product save error:",
+                    error
+                );
+
+
+                message.textContent =
+                    "Product save nahi hua.";
+
+                message.classList.add("error");
+
+            }
+
+        }
+
+
+        // ==========================================
+        // LOAD PRODUCTS
+        // ==========================================
+
+        function loadProducts() {
+
+            db.collection("products")
+                .orderBy("createdAt", "desc")
+                .onSnapshot(
+
+                    function(snapshot) {
+
+                        const list =
+                            document.getElementById(
+                                "products-list"
+                            );
+
+
+                        list.innerHTML = "";
+
+
+                        if (snapshot.empty) {
+
+                            list.innerHTML =
+                                "<p>No products found.</p>";
+
+                            return;
+
+                        }
+
+
+                        snapshot.forEach(function(doc) {
+
+                            const data =
+                                doc.data();
+
+
+                            const card =
+                                document.createElement("div");
+
+
+                            card.className =
+                                "product-card";
+
+
+                            card.innerHTML = `
+
+                                <img
+                                    src="${escapeHTML(data.image || "")}"
+                                    alt="${escapeHTML(data.name || "")}"
+                                    onerror="this.src='https://via.placeholder.com/300x300?text=VEDICARE'"
+                                >
+
+                                <div class="product-info">
+
+                                    <h3>
+                                        ${escapeHTML(data.name || "Unnamed Product")}
+                                    </h3>
+
+                                    <p>
+                                        Price:
+                                        <b>₹${Number(data.price || 0)}</b>
+                                    </p>
+
+                                    <p>
+                                        Stock:
+                                        <b>${Number(data.stock || 0)}</b>
+                                    </p>
+
+                                    <p>
+                                        Weight:
+                                        ${Number(data.weight || 0)} g
+                                    </p>
+
+                                    <p>
+                                        Size:
+                                        ${Number(data.length || 0)}
+                                        ×
+                                        ${Number(data.width || 0)}
+                                        ×
+                                        ${Number(data.height || 0)}
+                                        cm
+                                    </p>
+
+                                    <div class="product-actions">
+
+                                        <button
+                                            class="warning-btn"
+                                            onclick="editProduct('${doc.id}')"
+                                        >
+                                            EDIT
+                                        </button>
+
+                                        <button
+                                            class="danger-btn"
+                                            onclick="deleteProduct('${doc.id}')"
+                                        >
+                                            DELETE
+                                        </button>
+
+                                    </div>
+
+                                </div>
+                            `;
+
+
+                            list.appendChild(card);
+
+                        });
+
+                    },
+
+                    function(error) {
+
+                        console.error(
+                            "Products load error:",
+                            error
+                        );
+
+                        document.getElementById(
+                            "products-list"
+                        ).innerHTML =
+                            "<p>Products load nahi ho rahe.</p>";
+
+                    }
+
+                );
+
+        }
+
+
+        // ==========================================
+        // EDIT PRODUCT
+        // ==========================================
+
+        async function editProduct(productId) {
+
+            try {
+
+                const doc =
+                    await db
+                        .collection("products")
+                        .doc(productId)
+                        .get();
+
+
+                if (!doc.exists) {
+
+                    alert("Product nahi mila.");
+
+                    return;
+
+                }
+
+
+                const data =
+                    doc.data();
+
+
+                document.getElementById(
+                    "product-id"
+                ).value = productId;
+
+
+                document.getElementById(
+                    "product-name"
+                ).value = data.name || "";
+
+
+                document.getElementById(
+                    "product-price"
+                ).value = data.price || 0;
+
+
+                document.getElementById(
+                    "product-stock"
+                ).value = data.stock || 0;
+
+
+                document.getElementById(
+                    "product-image"
+                ).value = data.image || "";
+
+
+                document.getElementById(
+                    "product-description"
+                ).value = data.description || "";
+
+
+                document.getElementById(
+                    "product-weight"
+                ).value = data.weight || 0;
+
+
+                document.getElementById(
+                    "product-length"
+                ).value = data.length || 0;
+
+
+                document.getElementById(
+                    "product-width"
+                ).value = data.width || 0;
+
+
+                document.getElementById(
+                    "product-height"
+                ).value = data.height || 0;
+
+
+                window.scrollTo({
+
+                    top: 0,
+
+                    behavior: "smooth"
+
+                });
+
+            } catch (error) {
+
+                console.error(error);
+
+                alert(
+                    "Product edit nahi ho paya."
+                );
+
+            }
+
+        }
+
+
+        // ==========================================
+        // DELETE PRODUCT
+        // ==========================================
+
+        async function deleteProduct(productId) {
+
+            const confirmDelete =
+                confirm(
+                    "Kya aap is product ko delete karna chahte ho?"
+                );
+
+
+            if (!confirmDelete) {
+                return;
+            }
+
+
+            try {
+
+                await db
+                    .collection("products")
+                    .doc(productId)
+                    .delete();
+
+
+                alert(
+                    "Product deleted successfully."
+                );
+
+            } catch (error) {
+
+                console.error(error);
+
+                alert(
+                    "Product delete nahi hua."
+                );
+
+            }
+
+        }
+
+
+        // ==========================================
+        // LOAD ORDERS
+        // ==========================================
+
+        function loadOrders() {
+
+            db.collection("orders")
+                .orderBy("createdAt", "desc")
+                .onSnapshot(
+
+                    function(snapshot) {
+
+                        const list =
+                            document.getElementById(
+                                "orders-list"
+                            );
+
+
+                        list.innerHTML = "";
+
+
+                        if (snapshot.empty) {
+
+                            list.innerHTML =
+                                "<p>No orders yet.</p>";
+
+                            return;
+
+                        }
+
+
+                        snapshot.forEach(function(doc) {
+
+                            renderOrder(
+                                doc.id,
+                                doc.data(),
+                                list
+                            );
+
+                        });
+
+                    },
+
+                    function(error) {
+
+                        console.error(
+                            "Orders load error:",
+                            error
+                        );
+
+
+                        document.getElementById(
+                            "orders-list"
+                        ).innerHTML =
+                            "<p>Orders load nahi ho rahe.</p>";
+
+                    }
+
+                );
+
+        }
+
+
+        // ==========================================
+        // RENDER ORDER
+        // ==========================================
+
+        function renderOrder(
+            orderId,
+            order,
+            list
+        ) {
+
+            const customer =
+                order.customer || {};
+
+
+            const items =
+                Array.isArray(order.items)
+                    ? order.items
+                    : [];
+
+
+            const status =
+                order.status || "New";
+
+
+            const shipmentCharge =
+                Number(
+                    order.shippingCharge ??
+                    order.shipping ??
+                    0
+                );
+
+
+            const codAmount =
+                Number(
+                    order.codAmount ??
+                    order.total ??
+                    0
+                );
+
+
+            const card =
+                document.createElement("div");
+
+
+            card.className =
+                "order-card";
+
+
+            let itemsHTML = "";
+
+
+            items.forEach(function(item) {
+
+                itemsHTML += `
+
+                    <div class="order-item">
+
+                        <span>
+                            ${escapeHTML(item.name || "Product")}
+                            × ${Number(item.quantity || 0)}
+                        </span>
+
+                        <strong>
+                            ₹${Number(item.total || 0)}
+                        </strong>
+
+                    </div>
+
+                `;
+
+            });
+
+
+            card.innerHTML = `
+
+                <div class="order-header">
+
+                    <div>
+
+                        <div class="order-number">
+                            ${escapeHTML(order.orderNumber || orderId)}
+                        </div>
+
+                        <small>
+                            ${formatDate(order.createdAt)}
+                        </small>
+
+                    </div>
+
+                    <div class="status">
+                        ${escapeHTML(status)}
+                    </div>
+
+                </div>
+
+
+                <div class="customer-box">
+
+                    <h3>Customer Details</h3>
+
+                    <p>
+                        <b>Name:</b>
+                        ${escapeHTML(customer.name || "")}
+                    </p>
+
+                    <p>
+                        <b>Phone:</b>
+                        ${escapeHTML(customer.phone || "")}
+                    </p>
+
+                    <p>
+                        <b>Address:</b>
+                        ${escapeHTML(customer.address || "")}
+                    </p>
+
+                    <p>
+                        <b>PIN:</b>
+                        ${escapeHTML(customer.pincode || "")}
+                    </p>
+
+                    <p>
+                        <b>State:</b>
+                        ${escapeHTML(customer.state || "")}
+                    </p>
+
+                </div>
+
+
+                <div class="order-items">
+
+                    <h3>Order Items</h3>
+
+                    ${itemsHTML}
+
+                </div>
+
+
+                <div class="total-box">
+
+                    <p>
+                        <b>Subtotal:</b>
+                        ₹${Number(order.subtotal || 0)}
+                    </p>
+
+                    <p>
+                        <b>Shipping:</b>
+                        ${Number(order.shipping || 0) === 0
+                            ? "FREE"
+                            : "₹" + Number(order.shipping || 0)
+                        }
+                    </p>
+
+                    <p>
+                        <b>Total:</b>
+                        ₹${Number(order.total || 0)}
+                    </p>
+
+                    <p>
+                        <b>Payment Status:</b>
+                        ${escapeHTML(order.paymentStatus || "Pending")}
+                    </p>
+
+                </div>
+
+
+                <!-- =========================
+                     SHIPMENT
+                ========================== -->
+
+                <div class="shipment-box">
+
+                    <h3>Shipment Details</h3>
+
+                    <div class="grid">
+
+                        <div>
+
+                            <label>Shiprocket Order ID</label>
+
+                            <input
+                                id="sr-order-${orderId}"
+                                value="${escapeHTML(order.shiprocketOrderId || "")}"
+                                placeholder="Shiprocket Order ID"
+                            >
+
+                        </div>
+
+
+                        <div>
+
+                            <label>Shipment ID</label>
+
+                            <input
+                                id="shipment-id-${orderId}"
+                                value="${escapeHTML(order.shipmentId || "")}"
+                                placeholder="Shipment ID"
+                            >
+
+                        </div>
+
+
+                        <div>
+
+                            <label>AWB Number</label>
+
+                            <input
+                                id="awb-${orderId}"
+                                value="${escapeHTML(order.awb || "")}"
+                                placeholder="AWB"
+                            >
+
+                        </div>
+
+
+                        <div>
+
+                            <label>Courier Name</label>
+
+                            <input
+                                id="courier-${orderId}"
+                                value="${escapeHTML(order.courierName || "")}"
+                                placeholder="Courier name"
+                            >
+
+                        </div>
+
+
+                        <div>
+
+                            <label>Shipping Charge</label>
+
+                            <input
+                                type="number"
+                                id="shipping-charge-${orderId}"
+                                value="${shipmentCharge}"
+                                min="0"
+                            >
+
+                        </div>
+
+
+                        <div>
+
+                            <label>COD Amount</label>
+
+                            <input
+                                type="number"
+                                id="cod-${orderId}"
+                                value="${codAmount}"
+                                min="0"
+                            >
+
+                        </div>
+
+
+                        <div>
+
+                            <label>Settlement Status</label>
+
+                            <select id="settlement-${orderId}">
+
+                                <option value="Pending"
+                                    ${order.settlementStatus === "Pending" ? "selected" : ""}>
+                                    Pending
+                                </option>
+
+                                <option value="Processing"
+                                    ${order.settlementStatus === "Processing" ? "selected" : ""}>
+                                    Processing
+                                </option>
+
+                                <option value="Settled"
+                                    ${order.settlementStatus === "Settled" ? "selected" : ""}>
+                                    Settled
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <div>
+
+                            <label>Tracking URL</label>
+
+                            <input
+                                type="url"
+                                id="tracking-${orderId}"
+                                value="${escapeHTML(order.trackingUrl || "")}"
+                                placeholder="https://..."
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    <button
+                        class="primary-btn"
+                        onclick="saveShipmentDetails('${orderId}')"
+                    >
+                        SAVE SHIPMENT DETAILS
+                    </button>
+
+                </div>
+
+
+                <!-- =========================
+                     STATUS
+                ========================== -->
+
+                <div class="status-buttons">
+
+                    <button
+                        class="primary-btn"
+                        onclick="updateOrderStatus('${orderId}', 'New')"
+                    >
+                        NEW
+                    </button>
+
+
+                    <button
+                        class="success-btn"
+                        onclick="updateOrderStatus('${orderId}', 'Accepted')"
+                    >
+                        ACCEPTED
+                    </button>
+
+
+                    <button
+                        class="warning-btn"
+                        onclick="updateOrderStatus('${orderId}', 'Packed')"
+                    >
+                        PACKED
+                    </button>
+
+
+                    <button
+                        class="primary-btn"
+                        onclick="updateOrderStatus('${orderId}', 'Shipment Requested')"
+                    >
+                        SHIPMENT REQUESTED
+                    </button>
+
+
+                    <button
+                        class="primary-btn"
+                        onclick="updateOrderStatus('${orderId}', 'Shipped')"
+                    >
+                        SHIPPED
+                    </button>
+
+
+                    <button
+                        class="warning-btn"
+                        onclick="updateOrderStatus('${orderId}', 'Out for Delivery')"
+                    >
+                        OUT FOR DELIVERY
+                    </button>
+
+
+                    <button
+                        class="success-btn"
+                        onclick="updateOrderStatus('${orderId}', 'Delivered')"
+                    >
+                        DELIVERED
+                    </button>
+
+
+                    <button
+                        class="danger-btn"
+                        onclick="updateOrderStatus('${orderId}', 'Cancelled')"
+                    >
+                        CANCELLED
+                    </button>
+
+                </div>
+
+            `;
+
+
+            list.appendChild(card);
+
+        }
+
+
+        // ==========================================
+        // UPDATE ORDER STATUS
+        // ==========================================
+
+        async function updateOrderStatus(
+            orderId,
+            newStatus
+        ) {
+
+            try {
+
+                await db
+                    .collection("orders")
+                    .doc(orderId)
+                    .update({
+
+                        status: newStatus,
+
+                        updatedAt:
+                            firebase.firestore.FieldValue.serverTimestamp()
+
+                    });
+
+
+                console.log(
+                    "Order status updated:",
+                    newStatus
+                );
+
+            } catch (error) {
+
+                console.error(error);
+
+                alert(
+                    "Order status update nahi hua."
+                );
+
+            }
+
+        }
+
+
+        // ==========================================
+        // SAVE SHIPMENT DETAILS
+        // ==========================================
+
+        async function saveShipmentDetails(
+            orderId
+        ) {
+
+            const shiprocketOrderId =
+                document
+                    .getElementById(
+                        `sr-order-${orderId}`
+                    )
+                    .value
+                    .trim();
+
+
+            const shipmentId =
+                document
+                    .getElementById(
+                        `shipment-id-${orderId}`
+                    )
+                    .value
+                    .trim();
+
+
+            const awb =
+                document
+                    .getElementById(
+                        `awb-${orderId}`
+                    )
+                    .value
+                    .trim();
+
+
+            const courierName =
+                document
+                    .getElementById(
+                        `courier-${orderId}`
+                    )
+                    .value
+                    .trim();
+
+
+            const shippingCharge =
+                Number(
+                    document
+                        .getElementById(
+                            `shipping-charge-${orderId}`
+                        )
+                        .value
+                ) || 0;
+
+
+            const codAmount =
+                Number(
+                    document
+                        .getElementById(
+                            `cod-${orderId}`
+                        )
+                        .value
+                ) || 0;
+
+
+            const settlementStatus =
+                document
+                    .getElementById(
+                        `settlement-${orderId}`
+                    )
+                    .value;
+
+
+            const trackingUrl =
+                document
+                    .getElementById(
+                        `tracking-${orderId}`
+                    )
+                    .value
+                    .trim();
+
+
+            try {
+
+                await db
+                    .collection("orders")
+                    .doc(orderId)
+                    .update({
+
+                        shiprocketOrderId:
+                            shiprocketOrderId,
+
+                        shipmentId:
+                            shipmentId,
+
+                        awb:
+                            awb,
+
+                        courierName:
+                            courierName,
+
+                        shippingCharge:
+                            shippingCharge,
+
+                        codAmount:
+                            codAmount,
+
+                        settlementStatus:
+                            settlementStatus,
+
+                        trackingUrl:
+                            trackingUrl,
+
+                        updatedAt:
+                            firebase.firestore.FieldValue.serverTimestamp()
+
+                    });
+
+
+                alert(
+                    "Shipment details saved successfully."
+                );
+
+            } catch (error) {
+
+                console.error(
+                    "Shipment save error:",
+                    error
+                );
+
+
+                alert(
+                    "Shipment details save nahi hue."
+                );
+
+            }
+
+        }
+
+    </script>
+
+</body>
+
+</html>
