@@ -2144,6 +2144,9 @@ async function generatePickup(orderId) {
         if (!order.shipmentId) {
             throw new Error("Shipment ID available nahi hai.");
         }
+        if (!order.awb) {
+    throw new Error("Pehle AWB assign karein, phir pickup generate karein.");
+}
 
         const response = await fetch(
             `${BACKEND_URL}/api/shiprocket/pickup`,
