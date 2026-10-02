@@ -2060,12 +2060,17 @@ async function assignAWB(orderId) {
             result
         );
 
-        if (!response.ok) {
-            throw new Error(
-                result.message ||
-                "AWB assignment failed."
-            );
-        }
+        if (
+    !response.ok ||
+    result.status_code !== 200 ||
+    result.awb_assign_status !== 1
+) {
+    throw new Error(
+        result.message ||
+        result.response?.data?.awb_assign_error ||
+        "AWB assignment failed."
+    );
+}
 
         const awb =
             result.awb_code ||
