@@ -1,15 +1,27 @@
 // ================================
 // VEDICARE - FIREBASE PRODUCTS
+// + SHIPROCKET LIVE SHIPPING
 // ================================
 
 let products = [];
-
-
-// ================================
-// CART
-// ================================
-
 let cart = [];
+
+
+// ================================
+// SHIPROCKET BACKEND
+// ================================
+
+// Abhi local testing ke liye
+const BACKEND_URL = "https://vedicare-backend.onrender.com";
+
+
+// ================================
+// LIVE SHIPPING STATE
+// ================================
+
+let liveShipping = null;
+let shippingLoading = false;
+let selectedCourierDetails = null;
 
 
 // ================================
@@ -17,7 +29,9 @@ let cart = [];
 // ================================
 
 async function loadProducts() {
-    const productList = document.getElementById("product-list");
+
+    const productList =
+        document.getElementById("product-list");
 
     productList.innerHTML = `
         <p style="text-align:center; grid-column:1/-1;">
@@ -26,6 +40,7 @@ async function loadProducts() {
     `;
 
     try {
+
         const snapshot = await db
             .collection("products")
             .orderBy("createdAt", "desc")
@@ -34,22 +49,44 @@ async function loadProducts() {
         products = [];
 
         snapshot.forEach(doc => {
+
             const data = doc.data();
 
             products.push({
+
                 id: doc.id,
-                name: data.name || "Unnamed Product",
-                price: Number(data.price) || 0,
-                stock: Number(data.stock) || 0,
-                image: data.image || "",
-                description: data.description || ""
+
+                name:
+                    data.name || "Unnamed Product",
+
+                price:
+                    Number(data.price) || 0,
+
+                stock:
+                    Number(data.stock) || 0,
+
+                image:
+                    data.image || "",
+
+                description:
+                    data.description || "",
+
+                // Product weight in KG
+                weight:
+                    Number(data.weight) || 0
+
             });
+
         });
 
         displayProducts();
 
     } catch (error) {
-        console.error("Products load error:", error);
+
+        console.error(
+            "Products load error:",
+            error
+        );
 
         productList.innerHTML = `
             <p style="text-align:center; grid-column:1/-1;">
@@ -82,18 +119,16 @@ function displayProducts() {
         return;
     }
 
-
     products.forEach(product => {
 
         const productCard =
             document.createElement("div");
 
-        productCard.className = "product-card";
-
+        productCard.className =
+            "product-card";
 
         const outOfStock =
             product.stock <= 0;
-
 
         productCard.innerHTML = `
 
@@ -106,7 +141,6 @@ function displayProducts() {
                 >
 
             </div>
-
 
             <div class="product-info">
 
@@ -150,7 +184,6 @@ function displayProducts() {
             </div>
         `;
 
-
         productList.appendChild(productCard);
 
     });
@@ -164,26 +197,32 @@ function displayProducts() {
 function addToCart(productId) {
 
     const product =
-        products.find(item => item.id === productId);
+        products.find(
+            item => item.id === productId
+        );
 
     if (!product) return;
 
-
     if (product.stock <= 0) {
 
-        alert("This product is out of stock.");
+        alert(
+            "This product is out of stock."
+        );
 
         return;
     }
 
-
     const existingItem =
-        cart.find(item => item.id === productId);
-
+        cart.find(
+            item => item.id === productId
+        );
 
     if (existingItem) {
 
-        if (existingItem.quantity >= product.stock) {
+        if (
+            existingItem.quantity >=
+            product.stock
+        ) {
 
             alert(
                 `Only ${product.stock} units available.`
@@ -197,15 +236,19 @@ function addToCart(productId) {
     } else {
 
         cart.push({
+
             ...product,
+
             quantity: 1
+
         });
 
     }
 
+    // Shipping rate old ho gaya
+    liveShipping = null;
 
     updateCart();
-
 
     document
         .getElementById("cart")
@@ -216,23 +259,69 @@ function addToCart(productId) {
 
 
 // ================================
+// GET CART SUBTOTAL
+// ================================
+
+function getCartSubtotal() {
+
+    return cart.reduce(
+        (total, item) =>
+            total +
+            (item.price * item.quantity),
+        0
+    );
+}
+
+
+// ================================
+// GET TOTAL CART WEIGHT
+// ================================
+
+function getCartWeight() {
+
+    let totalWeightGrams = 0;
+
+    cart.forEach(item => {
+
+        const weight =
+            Number(item.weight) || 0;
+
+        totalWeightGrams +=
+            weight * item.quantity;
+
+    });
+
+    // Admin panel weight = grams
+    // Shiprocket weight = kg
+    return totalWeightGrams / 1000;
+}
+
+
+// ================================
 // UPDATE CART
 // ================================
 
 function updateCart() {
 
     const cartItems =
-        document.getElementById("cart-items");
+        document.getElementById(
+            "cart-items"
+        );
 
     const subtotalElement =
-        document.getElementById("subtotal");
+        document.getElementById(
+            "subtotal"
+        );
 
     const shippingElement =
-        document.getElementById("shipping");
+        document.getElementById(
+            "shipping"
+        );
 
     const totalElement =
-        document.getElementById("total");
-
+        document.getElementById(
+            "total"
+        );
 
     if (cart.length === 0) {
 
@@ -242,30 +331,39 @@ function updateCart() {
             </p>
         `;
 
-        subtotalElement.textContent = "₹0";
-        shippingElement.textContent = "₹0";
-        totalElement.textContent = "₹0";
+        subtotalElement.textContent =
+            "₹0";
+
+        shippingElement.textContent =
+            "₹0";
+
+        totalElement.textContent =
+            "₹0";
+
+        liveShipping = null;
 
         return;
     }
-
 
     cartItems.innerHTML = "";
 
     let subtotal = 0;
 
-
     cart.forEach(item => {
 
-        subtotal +=
-            item.price * item.quantity;
+        const itemTotal =
+            item.price *
+            item.quantity;
 
+        subtotal += itemTotal;
 
         const cartItem =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
 
-        cartItem.className = "cart-item";
-
+        cartItem.className =
+            "cart-item";
 
         cartItem.innerHTML = `
 
@@ -278,7 +376,6 @@ function updateCart() {
                 </p>
 
             </div>
-
 
             <div class="quantity-controls">
 
@@ -300,45 +397,294 @@ function updateCart() {
 
             </div>
 
-
             <strong>
-                ₹${item.price * item.quantity}
+                ₹${itemTotal}
             </strong>
 
         `;
 
-
-        cartItems.appendChild(cartItem);
+        cartItems.appendChild(
+            cartItem
+        );
 
     });
-
-
-    // ================================
-    // TEMPORARY SHIPPING RULE
-    // Later replace with courier API
-    // ================================
-
-    let shipping = 0;
-
-    if (subtotal > 0 && subtotal < 499) {
-        shipping = 60;
-    }
-
-
-    const total =
-        subtotal + shipping;
-
 
     subtotalElement.textContent =
         `₹${subtotal}`;
 
-    shippingElement.textContent =
-        shipping === 0
-            ? "FREE"
-            : `₹${shipping}`;
+    // ================================
+    // LIVE SHIPPING DISPLAY
+    // ================================
 
-    totalElement.textContent =
-        `₹${total}`;
+    if (shippingLoading) {
+
+        shippingElement.textContent =
+            "Calculating...";
+
+        totalElement.textContent =
+            "Calculating...";
+
+        return;
+    }
+
+    if (liveShipping !== null) {
+
+        shippingElement.textContent =
+            `₹${liveShipping}`;
+
+        totalElement.textContent =
+            `₹${subtotal + liveShipping}`;
+
+    } else {
+
+        shippingElement.textContent =
+            "Enter PIN to calculate";
+
+        totalElement.textContent =
+            `₹${subtotal}`;
+
+    }
+}
+
+
+// ================================
+// CALCULATE LIVE SHIPPING
+// ================================
+
+async function calculateLiveShipping() {
+
+    if (cart.length === 0) {
+
+        liveShipping = null;
+
+        updateCart();
+
+        return null;
+    }
+
+    const pincodeElement =
+        document.getElementById(
+            "customer-pincode"
+        );
+
+    if (!pincodeElement) {
+        return null;
+    }
+
+    const pincode =
+        pincodeElement.value.trim();
+
+    if (!/^[0-9]{6}$/.test(pincode)) {
+
+        liveShipping = null;
+
+        updateCart();
+
+        return null;
+    }
+
+    const weight =
+        getCartWeight();
+
+    if (weight <= 0) {
+
+        alert(
+            "Product weight admin panel me add nahi hai."
+        );
+
+        return null;
+    }
+
+    shippingLoading = true;
+
+    updateCart();
+
+    try {
+
+        const url =
+            `${BACKEND_URL}/api/shiprocket/serviceability` +
+            `?pickup_postcode=321303` +
+            `&delivery_postcode=${encodeURIComponent(pincode)}` +
+            `&weight=${encodeURIComponent(weight)}` +
+            `&cod=1`;
+
+        const response =
+            await fetch(url);
+
+        const data =
+            await response.json();
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.message ||
+                "Shipping calculation failed"
+            );
+        }
+
+        const couriers =
+            data?.data?.available_courier_companies || [];
+
+        if (couriers.length === 0) {
+
+            throw new Error(
+                "Is PIN code ke liye courier available nahi hai."
+            );
+        }
+
+        /*
+         * Shiprocket response me recommended courier
+         * diya gaya hai.
+         */
+
+        const recommendedId =
+            data?.data?.recommended_courier_company_id;
+
+        let selectedCourier =
+            couriers.find(
+                courier =>
+                    courier.courier_company_id ===
+                    recommendedId
+            );
+
+        // Agar recommended courier na mile,
+        // first available courier use hoga.
+        if (!selectedCourier) {
+            selectedCourier =
+                couriers[0];
+        }
+
+        const rate =
+            Number(selectedCourier.rate) || 0;
+
+        if (rate <= 0) {
+
+            throw new Error(
+                "Valid shipping rate nahi mila."
+            );
+        }
+        selectedCourierDetails = {
+    courier: selectedCourier.courier_name || "",
+    courierId: selectedCourier.courier_company_id || "",
+    estimatedDays: selectedCourier.estimated_delivery_days || "",
+    etd: selectedCourier.etd || ""
+};
+
+        liveShipping =
+            Math.round(rate * 100) / 100;
+
+        shippingLoading = false;
+
+        updateCart();
+        const shippingInfo =
+    document.getElementById("shipping-info");
+
+const shippingCourier =
+    document.getElementById("shipping-courier");
+
+const shippingEta =
+    document.getElementById("shipping-eta");
+console.log("SELECTED COURIER DATA:", selectedCourier);
+console.log("SHIPPING INFO:", shippingInfo);
+if (shippingInfo) {
+
+    shippingInfo.style.display = "block";
+
+    if (shippingCourier) {
+
+        shippingCourier.textContent =
+            "Courier: " +
+            (selectedCourier.courier_name || "Available Courier");
+
+    }
+
+    if (shippingEta) {
+
+        shippingEta.textContent =
+            "Estimated delivery: " +
+            (
+                selectedCourier.estimated_delivery_days ||
+                "N/A"
+            ) +
+            " days" +
+            (
+                selectedCourier.etd
+                    ? " • Expected by " + selectedCourier.etd
+                    : ""
+            );
+
+    }
+}
+
+        console.log(
+            "Shiprocket shipping:",
+            {
+                courier:
+                    selectedCourier.courier_name,
+
+                rate:
+                    selectedCourier.rate,
+
+                freight:
+                    selectedCourier.freight_charge,
+
+                codCharges:
+                    selectedCourier.cod_charges,
+
+                estimatedDays:
+                    selectedCourier.estimated_delivery_days,
+
+                etd:
+                    selectedCourier.etd,
+
+                weight:
+                    weight,
+
+                pincode:
+                    pincode
+            }
+        );
+
+        return {
+            shipping:
+                liveShipping,
+
+            courier:
+                selectedCourier.courier_name,
+
+            courierId:
+                selectedCourier.courier_company_id,
+
+            estimatedDays:
+                selectedCourier.estimated_delivery_days,
+
+            etd:
+                selectedCourier.etd,
+
+            weight:
+                weight
+        };
+
+    } catch (error) {
+
+        console.error(
+            "Shipping calculation error:",
+            error
+        );
+
+        liveShipping = null;
+
+        shippingLoading = false;
+
+        updateCart();
+
+        alert(
+            "Shipping calculate nahi ho paaya.\n\n" +
+            error.message
+        );
+
+        return null;
+    }
 }
 
 
@@ -346,17 +692,25 @@ function updateCart() {
 // CHANGE QUANTITY
 // ================================
 
-function changeQuantity(productId, change) {
+function changeQuantity(
+    productId,
+    change
+) {
 
     const item =
-        cart.find(product => product.id === productId);
+        cart.find(
+            product =>
+                product.id === productId
+        );
 
     if (!item) return;
 
-
     if (change > 0) {
 
-        if (item.quantity >= item.stock) {
+        if (
+            item.quantity >=
+            item.stock
+        ) {
 
             alert(
                 `Only ${item.stock} units available.`
@@ -364,22 +718,22 @@ function changeQuantity(productId, change) {
 
             return;
         }
-
     }
 
-
     item.quantity += change;
-
 
     if (item.quantity <= 0) {
 
         cart =
             cart.filter(
-                product => product.id !== productId
+                product =>
+                    product.id !== productId
             );
-
     }
 
+    // Quantity change hone par
+    // purana shipping rate invalid ho jayega.
+    liveShipping = null;
 
     updateCart();
 }
@@ -400,9 +754,10 @@ function checkout() {
         return;
     }
 
-
     document
-        .getElementById("checkout-form")
+        .getElementById(
+            "checkout-form"
+        )
         .scrollIntoView({
             behavior: "smooth"
         });
@@ -417,43 +772,50 @@ async function placeOrder() {
 
     if (cart.length === 0) {
 
-        alert("Your cart is empty.");
+        alert(
+            "Your cart is empty."
+        );
 
         return;
     }
 
-
     const name =
         document
-            .getElementById("customer-name")
+            .getElementById(
+                "customer-name"
+            )
             .value
             .trim();
-
 
     const phone =
         document
-            .getElementById("customer-phone")
+            .getElementById(
+                "customer-phone"
+            )
             .value
             .trim();
-
 
     const address =
         document
-            .getElementById("customer-address")
+            .getElementById(
+                "customer-address"
+            )
             .value
             .trim();
-
 
     const pincode =
         document
-            .getElementById("customer-pincode")
+            .getElementById(
+                "customer-pincode"
+            )
             .value
             .trim();
 
-
     const state =
         document
-            .getElementById("customer-state")
+            .getElementById(
+                "customer-state"
+            )
             .value
             .trim();
 
@@ -462,7 +824,13 @@ async function placeOrder() {
     // VALIDATION
     // ================================
 
-    if (!name || !phone || !address || !pincode || !state) {
+    if (
+        !name ||
+        !phone ||
+        !address ||
+        !pincode ||
+        !state
+    ) {
 
         alert(
             "Please fill all delivery details."
@@ -471,8 +839,9 @@ async function placeOrder() {
         return;
     }
 
-
-    if (!/^[0-9]{10}$/.test(phone)) {
+    if (
+        !/^[0-9]{10}$/.test(phone)
+    ) {
 
         alert(
             "Please enter a valid 10-digit mobile number."
@@ -481,8 +850,9 @@ async function placeOrder() {
         return;
     }
 
-
-    if (!/^[0-9]{6}$/.test(pincode)) {
+    if (
+        !/^[0-9]{6}$/.test(pincode)
+    ) {
 
         alert(
             "Please enter a valid 6-digit PIN code."
@@ -493,46 +863,82 @@ async function placeOrder() {
 
 
     // ================================
-    // CALCULATE TOTAL
+    // CALCULATE SUBTOTAL
     // ================================
 
     let subtotal = 0;
-
 
     const orderItems =
         cart.map(item => {
 
             const itemTotal =
-                item.price * item.quantity;
+                item.price *
+                item.quantity;
 
-
-            subtotal += itemTotal;
-
+            subtotal +=
+                itemTotal;
 
             return {
 
-                productId: item.id,
+                productId:
+                    item.id,
 
-                name: item.name,
+                name:
+                    item.name,
 
-                price: item.price,
+                price:
+                    item.price,
 
-                quantity: item.quantity,
+                quantity:
+                    item.quantity,
 
-                total: itemTotal
+                total:
+                    itemTotal,
+
+                weight:
+                    Number(item.weight) || 0
 
             };
 
         });
 
 
-    let shipping = 0;
+    // ================================
+    // GET LIVE SHIPPING
+    // ================================
 
+    let shipping =
+        liveShipping;
 
-    if (subtotal > 0 && subtotal < 499) {
-        shipping = 60;
+    /*
+     * Agar PIN enter karne ke baad
+     * rate calculate nahi hua hai,
+     * to order place karne se pehle
+     * automatically calculate hoga.
+     */
+
+    if (shipping === null) {
+
+        const shippingResult =
+            await calculateLiveShipping();
+
+        if (!shippingResult) {
+
+            alert(
+                "Please wait for shipping calculation and try again."
+            );
+
+            return;
+        }
+
+        shipping =
+            shippingResult.shipping;
     }
 
+
+    // ================================
+    // FINAL TOTAL
+    // ================================
 
     const total =
         subtotal + shipping;
@@ -555,36 +961,54 @@ async function placeOrder() {
 
     const orderData = {
 
-        orderNumber: orderNumber,
+        orderNumber:
+
+            orderNumber,
 
         customer: {
 
-            name: name,
+            name:
+                name,
 
-            phone: phone,
+            phone:
+                phone,
 
-            address: address,
+            address:
+                address,
 
-            pincode: pincode,
+            pincode:
+                pincode,
 
-            state: state
+            state:
+                state
 
         },
 
-        items: orderItems,
+        items:
+            orderItems,
 
-        subtotal: subtotal,
+        subtotal:
+            subtotal,
 
-        shipping: shipping,
+        shipping:
+            shipping,
 
-        total: total,
+        total:
+            total,
 
-        status: "New",
+        shippingMethod:
+            "Shiprocket Live Rate",
 
-        paymentStatus: "Pending",
+        status:
+            "New",
+
+        paymentStatus:
+            "Pending",
 
         createdAt:
-            firebase.firestore.FieldValue.serverTimestamp()
+            firebase.firestore
+                .FieldValue
+                .serverTimestamp()
 
     };
 
@@ -600,7 +1024,6 @@ async function placeOrder() {
                 .collection("orders")
                 .add(orderData);
 
-
         console.log(
             "Order saved:",
             orderRef.id
@@ -608,8 +1031,15 @@ async function placeOrder() {
 
 
         alert(
-            `Order placed successfully!\n\nOrder Number: ${orderNumber}`
-        );
+    `Order placed successfully!\n\n` +
+    `Order Number: ${orderNumber}\n` +
+    `Shipping: ₹${shipping}\n` +
+    `Courier: ${selectedCourierDetails?.courier || "N/A"}\n` +
+    `Estimated delivery: ${
+        selectedCourierDetails?.estimatedDays || "N/A"
+    } days\n` +
+    `Total: ₹${total}`
+);
 
 
         // ================================
@@ -617,6 +1047,8 @@ async function placeOrder() {
         // ================================
 
         cart = [];
+
+        liveShipping = null;
 
         updateCart();
 
@@ -626,23 +1058,33 @@ async function placeOrder() {
         // ================================
 
         document
-            .getElementById("customer-name")
+            .getElementById(
+                "customer-name"
+            )
             .value = "";
 
         document
-            .getElementById("customer-phone")
+            .getElementById(
+                "customer-phone"
+            )
             .value = "";
 
         document
-            .getElementById("customer-address")
+            .getElementById(
+                "customer-address"
+            )
             .value = "";
 
         document
-            .getElementById("customer-pincode")
+            .getElementById(
+                "customer-pincode"
+            )
             .value = "";
 
         document
-            .getElementById("customer-state")
+            .getElementById(
+                "customer-state"
+            )
             .value = "";
 
 
@@ -666,13 +1108,60 @@ async function placeOrder() {
             error
         );
 
-
         alert(
-            "Order save nahi hua.\n\nFirebase rules check karni hongi."
+            "Order save nahi hua.\n\n" +
+            "Firebase rules check karni hongi."
         );
 
     }
+}
 
+
+// ================================
+// PINCODE CHANGE
+// ================================
+
+function setupPincodeShipping() {
+
+    const pincodeInput =
+        document.getElementById(
+            "customer-pincode"
+        );
+
+    if (!pincodeInput) {
+        return;
+    }
+
+    /*
+     * PIN complete hone par
+     * live shipping calculate hogi.
+     */
+
+    pincodeInput.addEventListener(
+        "input",
+        function () {
+
+            const pincode =
+                this.value.trim();
+
+            if (
+                /^[0-9]{6}$/.test(
+                    pincode
+                )
+            ) {
+
+                calculateLiveShipping();
+
+            } else {
+
+                liveShipping = null;
+
+                updateCart();
+
+            }
+
+        }
+    );
 }
 
 
@@ -683,7 +1172,9 @@ async function placeOrder() {
 function scrollToProducts() {
 
     document
-        .getElementById("products")
+        .getElementById(
+            "products"
+        )
         .scrollIntoView({
             behavior: "smooth"
         });
@@ -695,8 +1186,8 @@ function scrollToProducts() {
 // START WEBSITE
 // ================================
 
-// Firebase products load karo
 loadProducts();
 
-// Cart initialize karo
 updateCart();
+
+setupPincodeShipping();
