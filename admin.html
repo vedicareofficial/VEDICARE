@@ -2215,6 +2215,54 @@ async function generatePickup(orderId) {
         );
     }
 }
+async function trackShipment(orderId) {
+
+    try {
+
+        const orderDoc = await db
+            .collection("orders")
+            .doc(orderId)
+            .get();
+
+        if (!orderDoc.exists) {
+            throw new Error("Order nahi mila.");
+        }
+
+        const order = orderDoc.data();
+
+        if (!order.awb) {
+            throw new Error(
+                "Tracking ke liye pehle AWB assign hona chahiye."
+            );
+        }
+
+        const response = await fetch(
+            `${BACKEND_URL}/api/shiprocket/track/${encodeURIComponent(order.awb)}`
+        );
+
+        const result = await response.json();
+
+        console.log("Tracking response:", result);
+
+        if (!response.ok) {
+            throw new Error(
+                result.message ||
+                "Tracking request failed."
+            );
+        }
+
+        alert("Tracking response Console me mil gaya.");
+
+    } catch (error) {
+
+        console.error("Tracking error:", error);
+
+        alert(
+            "Tracking nahi hui.\n\n" +
+            error.message
+        );
+    }
+}
 
 
         // ==========================================
