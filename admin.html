@@ -1691,7 +1691,12 @@
                     >
                         PACKED
                     </button>
-
+<button
+    class="primary-btn"
+    onclick="assignAWB('${orderId}')"
+>
+    ASSIGN AWB
+</button>
 
                     <button
                         class="primary-btn"
@@ -2008,6 +2013,104 @@
 
         alert(
             "Shiprocket order create nahi hua.\n\n" +
+            error.message
+        );
+    }
+}
+async function assignAWB(orderId) {
+
+    try {
+
+        const orderDoc = await db
+            .collection("orders")
+            .doc(orderId)
+            .get();
+
+        if (!orderDoc.exists) {
+            throw new Error("Order nahi mila.");
+        }
+
+        const order = orderDoc.data();
+
+        if (!order.shipmentId) {
+            throw new Error("Shipment ID available nahi hai.");
+        }
+
+        const response = await fetch(
+            `${BACKEND_URL}/api/shiprocket/awb`,
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    shipment_id:
+                        Number(order.shipmentId)
+                })
+            }
+        );
+
+        const result =
+            await response.json();
+
+        console.log(
+            "AWB response:",
+            result
+        );
+
+        if (!response.ok) {
+            throw new Error(
+                result.message ||
+                "AWB assignment failed."
+            );
+        }
+
+        const awb =
+            result.awb_code ||
+            result.response?.data?.awb_code ||
+            "";
+
+        const courier =
+            result.courier_name ||
+            result.response?.data?.courier_name ||
+            "";
+
+        await db
+            .collection("orders")
+            .doc(orderId)
+            .update({
+
+                awb: String(awb),
+
+                courierName:
+                    String(courier),
+
+                status:
+                    "Shipment Requested",
+
+                updatedAt:
+                    firebase.firestore.FieldValue
+                        .serverTimestamp()
+
+            });
+
+        alert(
+            "AWB successfully assign ho gaya."
+        );
+
+        loadOrders();
+
+    } catch (error) {
+
+        console.error(
+            "AWB error:",
+            error
+        );
+
+        alert(
+            "AWB assign nahi hua.\n\n" +
             error.message
         );
     }
