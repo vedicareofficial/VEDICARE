@@ -1697,6 +1697,12 @@
 >
     ASSIGN AWB
 </button>
+<button
+    class="primary-btn"
+    onclick="generatePickup('${orderId}')"
+>
+    GENERATE PICKUP
+</button>
 
                     <button
                         class="primary-btn"
@@ -2116,6 +2122,92 @@ async function assignAWB(orderId) {
 
         alert(
             "AWB assign nahi hua.\n\n" +
+            error.message
+        );
+    }
+}
+async function generatePickup(orderId) {
+
+    try {
+
+        const orderDoc = await db
+            .collection("orders")
+            .doc(orderId)
+            .get();
+
+        if (!orderDoc.exists) {
+            throw new Error("Order nahi mila.");
+        }
+
+        const order = orderDoc.data();
+
+        if (!order.shipmentId) {
+            throw new Error("Shipment ID available nahi hai.");
+        }
+
+        const response = await fetch(
+            `${BACKEND_URL}/api/shiprocket/pickup`,
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    shipment_id:
+                        Number(order.shipmentId)
+                })
+            }
+        );
+
+        const result =
+            await response.json();
+
+        console.log(
+            "Pickup response:",
+            result
+        );
+
+        if (
+            !response.ok ||
+            result.status_code >= 400
+        ) {
+            throw new Error(
+                result.message ||
+                "Pickup request failed."
+            );
+        }
+
+        await db
+            .collection("orders")
+            .doc(orderId)
+            .update({
+
+                status:
+                    "Shipment Requested",
+
+                updatedAt:
+                    firebase.firestore.FieldValue
+                        .serverTimestamp()
+
+            });
+
+        alert(
+            "Pickup request successfully generate ho gayi."
+        );
+
+        loadOrders();
+
+    } catch (error) {
+
+        console.error(
+            "Pickup error:",
+            error
+        );
+
+        alert(
+            "Pickup request nahi hui.\n\n" +
             error.message
         );
     }
