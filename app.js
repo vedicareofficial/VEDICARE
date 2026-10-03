@@ -1191,3 +1191,34 @@ loadProducts();
 updateCart();
 
 setupPincodeShipping();
+async function trackMyOrder() {
+
+    const orderNumber =
+        document
+            .getElementById("trackOrderNumber")
+            .value
+            .trim();
+
+    const phone =
+        document
+            .getElementById("trackPhone")
+            .value
+            .trim();
+
+    const result =
+        document.getElementById(
+            "orderTrackingResult"
+        );
+
+    if (!orderNumber || !phone) {
+
+        result.innerHTML =
+            "<p>Please enter Order Number and Mobile Number.</p>";
+
+        return;
+    }
+
+    result.innerHTML =
+        "<p>🔄 Order checking...</p>";
+
+}
