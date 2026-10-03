@@ -24,11 +24,30 @@
 </header>
 <section id="orders" class="orders-section">
 
-    <h2>📦 My Orders</h2>
+    <h2>📦 Track Your Order</h2>
 
-    <div id="ordersList">
-        <p>Abhi koi order nahi hai.</p>
-    </div>
+    <p>Order Number aur Mobile Number enter karein.</p>
+
+    <input
+        type="text"
+        id="trackOrderNumber"
+        placeholder="Order Number (e.g. #VC123456)"
+    >
+
+    <input
+        type="tel"
+        id="trackPhone"
+        placeholder="Mobile Number"
+    >
+
+    <button
+        onclick="trackMyOrder()"
+        class="primary-btn"
+    >
+        🔎 Track Order
+    </button>
+
+    <div id="orderTrackingResult"></div>
 
 </section>
 
