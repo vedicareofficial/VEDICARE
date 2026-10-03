@@ -558,7 +558,111 @@ app.get(
 
     }
 );
+// ==========================================
+// CUSTOMER ORDER TRACKING
+// ==========================================
 
+app.post(
+    "/api/order/track",
+    async (req, res) => {
+
+        try {
+
+            const {
+                orderNumber,
+                phone
+            } = req.body;
+
+            if (!orderNumber || !phone) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        "Order Number aur Mobile Number required hai."
+                });
+
+            }
+
+            const snapshot =
+                await firestore
+                    .collection("orders")
+                    .where(
+                        "orderNumber",
+                        "==",
+                        orderNumber.trim()
+                    )
+                    .where(
+                        "customer.phone",
+                        "==",
+                        phone.trim()
+                    )
+                    .limit(1)
+                    .get();
+
+            if (snapshot.empty) {
+
+                return res.status(404).json({
+                    success: false,
+                    message:
+                        "Order Number ya Mobile Number match nahi hua."
+                });
+
+            }
+
+            const doc =
+                snapshot.docs[0];
+
+            const order =
+                doc.data();
+
+            res.json({
+
+                success: true,
+
+                order: {
+                    orderNumber:
+                        order.orderNumber || "",
+
+                    status:
+                        order.status || "New",
+
+                    courier:
+                        order.courierName || "",
+
+                    awb:
+                        order.awb || "",
+
+                    trackingUrl:
+                        order.trackingUrl || "",
+
+                    estimatedDays:
+                        order.estimatedDays || "",
+
+                    createdAt:
+                        order.createdAt || null
+                }
+
+            });
+
+        } catch (error) {
+
+            console.error(
+                "Order tracking error:",
+                error
+            );
+
+            res.status(500).json({
+
+                success: false,
+
+                message:
+                    "Order tracking mein error aaya."
+            });
+
+        }
+
+    }
+);
 
 // ==========================================
 // START SERVER
