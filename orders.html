@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>My Orders - VEDICARE</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css?v=2"
+    >
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <header class="navbar">
+
+        <div class="logo">
+            VEDICARE
+        </div>
+
+        <nav>
+            <a href="index.html">
+                Home
+            </a>
+
+            <a href="index.html#products">
+                Products
+            </a>
+
+            <a href="index.html#cart">
+                🛒 Cart
+            </a>
+
+            <a href="orders.html">
+                📦 My Orders
+            </a>
+        </nav>
+
+    </header>
+
+
+    <!-- ORDER TRACKING -->
+    <section class="orders-section">
+
+        <h2>📦 Track Your Order</h2>
+
+        <p>
+            Order Number aur Mobile Number enter karein.
+        </p>
+
+
+        <input
+            type="text"
+            id="trackOrderNumber"
+            placeholder="Order Number (e.g. #VC123456)"
+        >
+
+
+        <input
+            type="tel"
+            id="trackPhone"
+            placeholder="Mobile Number"
+        >
+
+
+        <button
+            onclick="trackMyOrder()"
+            class="primary-btn"
+        >
+            🔎 Track Order
+        </button>
+
+
+        <div id="orderTrackingResult"></div>
+
+    </section>
+
+
+    <script src="app.js?v=2"></script>
+
+</body>
+
+</html>
