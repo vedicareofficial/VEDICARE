@@ -1221,4 +1221,113 @@ async function trackMyOrder() {
     result.innerHTML =
         "<p>🔄 Order checking...</p>";
 
+    try {
+
+        const response =
+            await fetch(
+                `${BACKEND_URL}/api/order/track`,
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        orderNumber:
+                            orderNumber,
+
+                        phone:
+                            phone
+                    })
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if (!response.ok || !data.success) {
+
+            throw new Error(
+                data.message ||
+                "Order nahi mila."
+            );
+
+        }
+
+        const order =
+            data.order;
+
+        result.innerHTML = `
+
+            <div class="order-tracking-card">
+
+                <h3>📦 Order Details</h3>
+
+                <p>
+                    <strong>Order Number:</strong>
+                    ${order.orderNumber || "N/A"}
+                </p>
+
+                <p>
+                    <strong>Status:</strong>
+                    ${order.status || "N/A"}
+                </p>
+
+                <p>
+                    <strong>Courier:</strong>
+                    ${order.courier || "Not assigned yet"}
+                </p>
+
+                <p>
+                    <strong>AWB:</strong>
+                    ${order.awb || "Not assigned yet"}
+                </p>
+
+                ${
+                    order.trackingUrl
+                        ? `
+                        <p>
+                            <a
+                                href="${order.trackingUrl}"
+                                target="_blank"
+                            >
+                                🔎 Track Shipment
+                            </a>
+                        </p>
+                        `
+                        : ""
+                }
+
+                ${
+                    order.estimatedDays
+                        ? `
+                        <p>
+                            <strong>Estimated Delivery:</strong>
+                            ${order.estimatedDays} days
+                        </p>
+                        `
+                        : ""
+                }
+
+            </div>
+
+        `;
+
+    } catch (error) {
+
+        console.error(
+            "Order tracking error:",
+            error
+        );
+
+        result.innerHTML = `
+            <p>
+                ❌ ${error.message}
+            </p>
+        `;
+
+    }
+
 }
