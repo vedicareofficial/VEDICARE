@@ -1810,228 +1810,105 @@
 
     try {
 
-        const orderDoc = await db
-            .collection("orders")
-            .doc(orderId)
-            .get();
+        const currentUser =
+            firebase.auth().currentUser;
 
-        if (!orderDoc.exists) {
-            throw new Error("Order nahi mila.");
-        }
-
-        const order = orderDoc.data();
-        const customer = order.customer || {};
-        const items = Array.isArray(order.items)
-            ? order.items
-            : [];
-
-        if (items.length === 0) {
-            throw new Error("Order me products nahi hain.");
-        }
-
-        const order_items = items.map(item => ({
-            name: item.name || "Product",
-            sku: item.productId || item.id || "PRODUCT",
-            units: Number(item.quantity) || 1,
-            selling_price: Number(item.price) || 0,
-            discount: 0,
-            tax: 0,
-            hsn: ""
-        }));
-
-        let totalWeight = 0;
-
-        items.forEach(item => {
-            totalWeight +=
-                (Number(item.weight) || 0) *
-                (Number(item.quantity) || 1);
-        });
-
-        totalWeight = totalWeight / 1000;
-
-        if (totalWeight <= 0) {
+        if (!currentUser) {
             throw new Error(
-                "Product weight available nahi hai."
+                "Admin login required."
             );
         }
 
-        const payload = {
+        const idToken =
+            await currentUser.getIdToken();
 
-            order_id:
-                order.orderNumber || orderId,
+        const response =
+            await fetch(
+                `${BACKEND_URL}/api/shiprocket/process-order`,
+                {
+                    method: "POST",
 
-            order_date:
-                new Date().toISOString(),
+                    headers: {
+                        "Content-Type":
+                            "application/json",
 
-            pickup_location:
-                "Home",
+                        "Authorization":
+                            `Bearer ${idToken}`
+                    },
 
-            channel_id:
-                "",
-
-            comment:
-                "VEDICARE Website Order",
-
-            billing_customer_name:
-                customer.name || "",
-
-            billing_last_name:
-                "",
-
-            billing_address:
-                customer.address || "",
-
-            billing_address_2:
-                "",
-
-            billing_city:
-                "",
-
-            billing_pincode:
-                customer.pincode || "",
-
-            billing_state:
-                customer.state || "",
-
-            billing_country:
-                "India",
-
-            billing_email:
-                "",
-
-            billing_phone:
-                customer.phone || "",
-
-            shipping_is_billing:
-                true,
-
-            shipping_customer_name:
-                customer.name || "",
-
-            shipping_last_name:
-                "",
-
-            shipping_address:
-                customer.address || "",
-
-            shipping_address_2:
-                "",
-
-            shipping_city:
-                "",
-
-            shipping_pincode:
-                customer.pincode || "",
-
-            shipping_state:
-                customer.state || "",
-
-            shipping_country:
-                "India",
-
-            shipping_email:
-                "",
-
-            shipping_phone:
-                customer.phone || "",
-
-            order_items:
-                order_items,
-
-            payment_method:
-                "COD",
-
-            shipping_charges:
-                Number(order.shipping) || 0,
-
-            giftwrap_charges:
-                0,
-
-            transaction_charges:
-                0,
-
-            total_discount:
-                0,
-
-            sub_total:
-                Number(order.subtotal) || 0,
-
-            length:
-                20,
-
-            breadth:
-                15,
-
-            height:
-                10,
-
-            weight:
-                totalWeight
-        };
-
-        const response = await fetch(
-            `${BACKEND_URL}/api/shiprocket/orders/create`,
-            {
-                method: "POST",
-
-                headers: {
-                    "Content-Type":
-                        "application/json"
-                },
-
-                body:
-                    JSON.stringify(payload)
-            }
-        );
+                    body:
+                        JSON.stringify({
+                            orderId: orderId
+                        })
+                }
+            );
 
         const result =
             await response.json();
 
-        if (!response.ok) {
-            throw new Error(
-                result.message ||
-                "Shiprocket order create failed."
-            );
-        }
-
-        await db
-            .collection("orders")
-            .doc(orderId)
-            .update({
-
-                shiprocketOrderId:
-                    String(
-                        result.order_id || ""
-                    ),
-
-                shipmentId:
-                    String(
-                        result.shipment_id || ""
-                    ),
-
-                status:
-                    "Accepted",
-
-                updatedAt:
-                    firebase.firestore.FieldValue
-                        .serverTimestamp()
-            });
-
-        alert(
-            "Order accepted aur Shiprocket me create ho gaya."
+        console.log(
+            "Automatic Shiprocket result:",
+            result
         );
 
+
+        if (!response.ok || !result.success) {
+
+            let message =
+                result.message ||
+                "Automatic shipment process failed.";
+
+            if (
+                result.step ===
+                "assign_awb"
+            ) {
+
+                message =
+                    "AWB assign nahi hua.\n\n" +
+                    message;
+            }
+
+            if (
+                result.step ===
+                "generate_pickup"
+            ) {
+
+                message =
+                    "Pickup generate nahi hua.\n\n" +
+                    message;
+            }
+
+            throw new Error(message);
+        }
+
+
+        alert(
+            "✅ Order Accepted!\n\n" +
+            "Shiprocket Order: " +
+            (result.order?.shiprocketOrderId || "-") +
+            "\n\n" +
+            "AWB: " +
+            (result.order?.awb || "-") +
+            "\n\n" +
+            "Courier: " +
+            (result.order?.courier || "-") +
+            "\n\n" +
+            "Pickup request bhi bhej di gayi hai."
+        );
+
+
         loadOrders();
+
 
     } catch (error) {
 
         console.error(
-            "Shiprocket order error:",
+            "Automatic Shiprocket error:",
             error
         );
 
         alert(
-            "Shiprocket order create nahi hua.\n\n" +
+            "❌ Order process nahi hua.\n\n" +
             error.message
         );
     }
